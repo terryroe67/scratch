@@ -1,73 +1,39 @@
-import java.io.*;
-import java.math.*;
-import java.security.*;
-import java.text.*;
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
-import java.util.regex.*;
-import java.util.stream.*;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-
 
 class Result {
 
-    public static class Point {
-        public int index;
-        public int x;
-        public int y;
-        public Point(int index, int x, int y) {
-            p.index = index; p.x = x; p.y = y; return p; }
-    }
+    public static void findPoints(List<Point> pointList) {
+        List<Point> vertices =  new ArrayList<>();
+        vertices.add(pointList.get(0));
 
-    public static List<Integer> find_points(List<List<Integer>> points) {
-
-        Set<Point> pointSet = new HashSet<>();
-        for (int i = 0; i < points.size(); ++i) {
-            Point point = new Point(i, points.get(i).get(0), points.get(i).get(1));
-            pointSet.add(point);
-        }
-
-        Collections.sort(points, new Comparator<List<Integer>>() {
-            public int compare(List<Integer> a, List<Integer> b) {
-                return Integer.valueOf(a.get(0)) - Integer.valueOf(b.get(0));
-            }
-        });
-        List<Integer> startingPoint = points.get(0);
-        List<List<Integer>> verticies = new ArrayList<List<Integer>>();
-        verticies.add(startingPoint);
         int currIndex = 0;
         double relAngle = 0.0;
         do {
-            List<Double> angles = getAngles(currIndex, points, relAngle);
+            List<Double> angles = getAngles(currIndex, pointList, relAngle);
             double min = Collections.min(angles);
             int minIndex = angles.indexOf(min);
-            verticies.add(points.get(minIndex));
+            vertices.add(pointList.get(minIndex));
             currIndex = minIndex;
             if (angles.get(currIndex) > Math.PI * 2)
                 relAngle += angles.get(currIndex) - Math.PI * 2;
             else
                 relAngle += angles.get(currIndex);
-        } while (verticies.get(0) != verticies.get(verticies.size()-1));
-
-
-
-        return null;
+        } while (vertices.get(0) != vertices.get(vertices.size() - 1));
+        vertices.forEach(System.err::println);
     }
 
-    public static List<Double> getAngles(int startIndex, List<List<Integer>> points, double relAngle){
-        List<Double> output = new ArrayList<Double>();
-        List<Integer> startPoint = points.get(startIndex);
-        for (int i = 0; i < points.size(); i++) {
+    public static List<Double> getAngles(int startIndex, List<Point> pointList, double relAngle) {
+        List<Double> output = new ArrayList<>();
+        Point startPoint = pointList.get(startIndex);
+        for (int i = 0; i < pointList.size(); i++) {
             if (i == startIndex)
                 output.add(4 * Math.PI);
-            List<Integer> newPoint = points.get(i);
-            int x2 = newPoint.get(0);
-            int y2 = newPoint.get(1);
-            int x1 = startPoint.get(0);
-            int y1 = startPoint.get(1);
-            double angle = Math.atan((double)(y2-y1)/(double)(x2-x1));
+            Point newPoint = pointList.get(i);
+            int x2 = newPoint.x;
+            int y2 = newPoint.y;
+            int x1 = startPoint.x;
+            int y1 = startPoint.y;
+            double angle = Math.atan((double) (y2 - y1) / (double) (x2 - x1));
             if (angle < relAngle)
                 angle += Math.PI * 2;
             output.add(angle);
@@ -76,20 +42,43 @@ class Result {
     }
 
     public static void main(String[] args) {
-        Integer[] point0 = { 1, 10 };
-        Integer[] point1 = { 2, 8 };
-        Integer[] point2 = { 4, 1 };
-        Integer[] point3 = { 6, 9 };
-        Integer[] point4 = { 5, 5 };
-        List<List<Integer>> input = new ArrayList<>();
-        input.add(Arrays.asList(point0));
-        input.add(Arrays.asList(point1));
-        input.add(Arrays.asList(point2));
-        input.add(Arrays.asList(point3));
-        input.add(Arrays.asList(point4));
-        List<Integer> points = find_points(input);
-        for (Integer i : points) {
-            System.err.println(i);
-        }
+        List<Point> pointList = new ArrayList<>();
+        pointList.add(new Point(0, 1, 10));
+        pointList.add(new Point(1, 2, 8));
+        pointList.add(new Point(2, 4, 1));
+        pointList.add(new Point(3, 6, 9));
+        pointList.add(new Point(4, 5, 5));
+
+        pointList.sort(new XPointComparator());
+        pointList.forEach(System.err::println);
+
+        findPoints(pointList);
+
+    }
+}
+
+class Point {
+    public int index;
+    public int x;
+    public int y;
+    public Point(int index, int x, int y) {
+        this.index = index;
+        this.x = x;
+        this.y = y;
+    }
+    @Override
+    public String toString() {
+        return "Point{" +
+                "index=" + index +
+                ", x=" + x +
+                ", y=" + y +
+                '}';
+    }
+}
+
+class XPointComparator implements Comparator<Point> {
+    @Override
+    public int compare(Point o1, Point o2) {
+        return o1.x - o2.x;
     }
 }
